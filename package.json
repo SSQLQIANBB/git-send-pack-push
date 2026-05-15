@@ -1,0 +1,36 @@
+{
+  "name": "git-send-pack-push",
+  "version": "0.1.0",
+  "description": "Codex skill for pushing Git branches with low-level git send-pack.",
+  "keywords": [
+    "codex",
+    "skill",
+    "git",
+    "send-pack",
+    "push"
+  ],
+  "homepage": "https://github.com/SSQLQIANBB/git-send-pack-push#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/SSQLQIANBB/git-send-pack-push.git"
+  },
+  "bugs": {
+    "url": "https://github.com/SSQLQIANBB/git-send-pack-push/issues"
+  },
+  "license": "MIT",
+  "files": [
+    "SKILL.md",
+    "agents",
+    "scripts",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "pack:dry-run": "npm pack --dry-run",
+    "publish:dry-run": "npm publish --dry-run --registry https://registry.npmjs.org"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
+  }
+}

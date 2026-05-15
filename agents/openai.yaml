@@ -1,0 +1,4 @@
+interface:
+  display_name: "Git Send-Pack Push"
+  short_description: "Push Git branches with low-level send-pack."
+  default_prompt: "Use $git-send-pack-push to push the current branch to origin with git send-pack."
