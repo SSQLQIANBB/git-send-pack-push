@@ -1,6 +1,6 @@
 {
   "name": "git-send-pack-push",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Codex skill for pushing Git branches with low-level git send-pack.",
   "keywords": [
     "codex",
@@ -23,6 +23,7 @@
     "agents",
     "scripts",
     "README.md",
+    "README.zh-CN.md",
     "LICENSE"
   ],
   "scripts": {

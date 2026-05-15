@@ -1,27 +1,46 @@
 # git-send-pack-push
 
+[中文文档](./README.zh-CN.md)
+
 Codex skill for pushing Git branches with low-level `git send-pack`.
 
 Use this skill when normal `git push` fails but lower-level Git commands still work, or when a user explicitly asks Codex to push with `send-pack`.
 
-## What It Provides
+## Highlights
 
-- `SKILL.md` - Codex instructions for safe `send-pack` pushes.
-- `agents/openai.yaml` - Codex UI metadata.
-- `scripts/send-pack-push.ps1` - PowerShell helper that refuses dirty worktrees and non-fast-forward pushes.
+- Pushes with `git send-pack`, not `git push`.
+- Resolves the real remote push URL before sending.
+- Refuses dirty worktrees in the helper script.
+- Refuses non-fast-forward updates in the helper script.
+- Verifies the remote branch after a successful push.
+- Works well when `git status`, `git fetch`, and `git ls-remote` work but regular `git push` is unreliable.
 
-## Requirements
+## Installation & Setup
 
-- Git must be installed and available in `PATH`.
-- The target remote must already exist.
-- Your Git credentials must already work for the remote URL, for example SSH access to GitHub.
-- The repository should have a clean worktree before pushing.
+Install from npm or GitHub, then place the skill folder under your Codex skills directory. Restart Codex after installation so the new skill metadata is loaded.
 
-## Install From npm
+### 1. Choose your install source
 
-Codex discovers skills from the `skills` directory under `CODEX_HOME`. If `CODEX_HOME` is not set, use `~/.codex/skills`.
+Recommended: install from npm if you only want to use the skill.
 
-### Windows PowerShell
+```bash
+npm view git-send-pack-push version --registry https://registry.npmjs.org
+```
+
+Use GitHub if you want to inspect, edit, or contribute to the source.
+
+```bash
+git ls-remote https://github.com/SSQLQIANBB/git-send-pack-push.git HEAD
+```
+
+### 2. Install from npm
+
+Codex discovers skills from:
+
+- `$CODEX_HOME/skills` when `CODEX_HOME` is set.
+- `~/.codex/skills` when `CODEX_HOME` is not set.
+
+#### Windows PowerShell
 
 ```powershell
 $SkillRoot = if ($env:CODEX_HOME) { Join-Path $env:CODEX_HOME "skills" } else { Join-Path $HOME ".codex\skills" }
@@ -36,7 +55,7 @@ if (Test-Path $Target) { Remove-Item -Recurse -Force $Target }
 Copy-Item -Recurse (Join-Path $TempDir "package") $Target
 ```
 
-### macOS or Linux
+#### macOS or Linux
 
 ```bash
 SKILL_ROOT="${CODEX_HOME:-$HOME/.codex}/skills"
@@ -50,13 +69,9 @@ rm -rf "$SKILL_ROOT/git-send-pack-push"
 cp -R "$TEMP_DIR/package" "$SKILL_ROOT/git-send-pack-push"
 ```
 
-Restart Codex after installing so the new skill metadata is loaded.
+### 3. Install from GitHub
 
-## Install From GitHub
-
-Use this if you want the source repository instead of the npm package.
-
-### HTTPS
+Use HTTPS:
 
 ```bash
 SKILL_ROOT="${CODEX_HOME:-$HOME/.codex}/skills"
@@ -64,7 +79,7 @@ mkdir -p "$SKILL_ROOT"
 git clone https://github.com/SSQLQIANBB/git-send-pack-push.git "$SKILL_ROOT/git-send-pack-push"
 ```
 
-### SSH
+Use SSH:
 
 ```bash
 SKILL_ROOT="${CODEX_HOME:-$HOME/.codex}/skills"
@@ -72,7 +87,7 @@ mkdir -p "$SKILL_ROOT"
 git clone git@github.com:SSQLQIANBB/git-send-pack-push.git "$SKILL_ROOT/git-send-pack-push"
 ```
 
-On Windows PowerShell, set the skill root first:
+Windows PowerShell:
 
 ```powershell
 $SkillRoot = if ($env:CODEX_HOME) { Join-Path $env:CODEX_HOME "skills" } else { Join-Path $HOME ".codex\skills" }
@@ -80,27 +95,48 @@ New-Item -ItemType Directory -Force $SkillRoot | Out-Null
 git clone git@github.com:SSQLQIANBB/git-send-pack-push.git (Join-Path $SkillRoot "git-send-pack-push")
 ```
 
-## Use In Codex
+### 4. Verify the installation
 
-After installation and restart, ask Codex to use the skill by name:
+Check that these files exist:
+
+```text
+git-send-pack-push/
+  SKILL.md
+  agents/openai.yaml
+  scripts/send-pack-push.ps1
+```
+
+Optional validation if you have the Codex skill validator available:
+
+```bash
+python ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py ~/.codex/skills/git-send-pack-push
+```
+
+Restart Codex after verification.
+
+### 5. Use the skill in Codex
+
+Ask Codex to use the skill by name:
 
 ```text
 Use $git-send-pack-push to push the current branch to origin.
 ```
 
-Chinese examples:
+Other examples:
 
 ```text
-使用 $git-send-pack-push 通过 send-pack 推送当前分支到 origin。
+Normal git push is failing. Use $git-send-pack-push and push this branch with send-pack.
 ```
 
 ```text
-普通 git push 失败了，请用 $git-send-pack-push 走底层 send-pack 推送。
+Use $git-send-pack-push to push master to origin through the low-level Git protocol.
 ```
 
-The skill will inspect the repository, resolve the remote push URL, check fast-forward safety, run `git send-pack`, then verify the remote branch.
+The skill will inspect the repository, resolve the remote push URL, check fast-forward safety, run `git send-pack`, fetch the remote branch, and verify the remote ref.
 
-## Use The Helper Script Directly
+## Direct Helper Usage
+
+The bundled PowerShell helper can be used without Codex.
 
 Dry run:
 
@@ -130,9 +166,26 @@ The helper script stops before pushing when:
 
 It does not force push. If you need a force update, review the risk manually and run Git yourself.
 
+## Requirements
+
+- Git installed and available in `PATH`.
+- PowerShell when using `scripts/send-pack-push.ps1`.
+- Existing remote repository.
+- Working Git credentials for the target remote URL.
+- Clean local worktree before helper-script pushes.
+
 ## Troubleshooting
 
 - `Repository not found`: Create the remote repository first, then check that your SSH key or token has access.
 - `Permission denied (publickey)`: Fix SSH authentication for the remote host.
 - `Worktree is dirty`: Commit, stash, or discard local changes before pushing.
 - `Remote branch is not an ancestor`: Fetch and rebase or merge before retrying.
+- Skill does not appear in Codex: Confirm the folder is under the active Codex skills directory and restart Codex.
+
+## Package Contents
+
+- `SKILL.md` - Codex instructions for safe `send-pack` pushes.
+- `agents/openai.yaml` - Codex UI metadata.
+- `scripts/send-pack-push.ps1` - Safe helper for low-level pushes.
+- `README.md` - English documentation.
+- `README.zh-CN.md` - Chinese documentation.
